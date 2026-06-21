@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel Menedżera — Stacja Benzynowa Orzeł</title>
+  <link rel="stylesheet" href="./css/styles.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body>
+  <div class="app-layout">
+
+    <!-- ═══════════════ SIDEBAR ═══════════════ -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <span class="logo-icon">🦅</span>
+        <div class="logo-text">
+          <h2>Orzeł</h2>
+          <span>Panel Menedżera</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <div class="nav-section-title">Główne</div>
+          <button class="nav-item active" data-section="dashboard">
+            <span class="nav-icon">📊</span>
+            Dashboard
+          </button>
+          <button class="nav-item" data-section="tanks">
+            <span class="nav-icon">⛽</span>
+            Zbiorniki Paliwa
+          </button>
+          <button class="nav-item" data-section="orders">
+            <span class="nav-icon">📦</span>
+            Zamówienia
+          </button>
+          <button class="nav-item" data-section="assortment">
+            <span class="nav-icon">🍔</span>
+            Asortyment
+          </button>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-section-title">Zarządzanie</div>
+          <button class="nav-item" data-section="schedule">
+            <span class="nav-icon">📅</span>
+            Grafik Personelu
+          </button>
+          <button class="nav-item" data-section="assistance">
+            <span class="nav-icon">♿</span>
+            Pomoc Niepełnosprawnym
+            <span class="nav-badge" id="assistanceBadge" style="display:none;">0</span>
+          </button>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-section-title">Finanse</div>
+          <button class="nav-item" data-section="reports">
+            <span class="nav-icon">📈</span>
+            Raporty Sprzedaży
+          </button>
+          <button class="nav-item" data-section="payments">
+            <span class="nav-icon">💳</span>
+            Rozliczenia Płatności
+          </button>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-section-title">Inne</div>
+          <button class="nav-item" data-section="emissions">
+            <span class="nav-icon">🌿</span>
+            Emisje CO2
+          </button>
+          <button class="nav-item" data-section="promotions">
+            <span class="nav-icon">🏷️</span>
+            Promocje
+          </button>
+        </div>
+
+        <div class="nav-section">
+          <button class="nav-item" id="logoutBtn">
+            <span class="nav-icon">🚪</span>
+            Wyloguj się
+          </button>
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-card">
+          <div class="user-avatar">MW</div>
+          <div class="user-info">
+            <div class="user-name">Maria Wiśniewska</div>
+            <div class="user-role">Menedżer Stacji</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ═══════════════ MAIN CONTENT ═══════════════ -->
+    <main class="main-content" id="mainContent">
+
+      <!-- ────────── DASHBOARD ────────── -->
+      <div class="section-page active" id="section-dashboard">
+        <div class="page-header">
+          <h1><span class="header-icon">📊</span> Dashboard</h1>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon">💰</div>
+            <div class="stat-value">15 200 PLN</div>
+            <div class="stat-label">Obrót Dzisiaj</div>
+            <div class="stat-change up">↑ 12% vs wczoraj</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">👥</div>
+            <div class="stat-value">178</div>
+            <div class="stat-label">Klienci Dzisiaj</div>
+            <div class="stat-change down">↓ 5% vs wczoraj</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">⛽</div>
+            <div class="stat-value">8 420 L</div>
+            <div class="stat-label">Zatankowane Paliwo</div>
+            <div class="stat-change up">↑ 8% vs wczoraj</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🍔</div>
+            <div class="stat-value">34</div>
+            <div class="stat-label">Zamówienia Jedzenia</div>
+            <div class="stat-change up">↑ 15% vs wczoraj</div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header">
+              <h3><span class="card-icon">📈</span> Przychody (7 dni)</h3>
+            </div>
+            <canvas id="salesChart" height="280"></canvas>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <h3><span class="card-icon">👥</span> Klienci (7 dni)</h3>
+            </div>
+            <canvas id="customerChart" height="280"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- ────────── ZBIORNIKI PALIWA ────────── -->
+      <div class="section-page" id="section-tanks">
+        <div class="page-header">
+          <h1><span class="header-icon">⛽</span> Zbiorniki Paliwa</h1>
+        </div>
+
+        <div class="card mb-3">
+          <div class="card-header">
+            <h3><span class="card-icon">🛢️</span> Stan Zbiorników</h3>
+          </div>
+          <div class="tank-visual" id="tankVisual">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3><span class="card-icon">🚚</span> Szybkie Akcje</h3>
+          </div>
+          <div class="flex gap-2" style="flex-wrap: wrap;">
+            <button class="btn btn-primary" onclick="openModal('orderModal')">📦 Zamów Paliwo</button>
+            <button class="btn btn-secondary">📊 Raport Zużycia</button>
+            <button class="btn btn-secondary">🔧 Przegląd Techniczny</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ────────── ZAMÓWIENIA ────────── -->
+      <div class="section-page" id="section-orders">
+        <div class="page-header">
+          <h1><span class="header-icon">📦</span> Zamówienia</h1>
+          <button class="btn btn-primary" onclick="openModal('orderModal')">➕ Nowe Zamówienie</button>
+        </div>
+
+        <div class="card">
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Typ</th>
+                  <th>Ilość</th>
+                  <th>Status</th>
+                  <th>Data zamówienia</th>
+                  <th>ETA</th>
+                  <th>Dostawca</th>
+                </tr>
+              </thead>
+              <tbody id="ordersTableBody">
+                <!-- Populated by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ────────── ASORTYMENT ────────── -->
+      <div class="section-page" id="section-assortment">
+        <div class="page-header">
+          <h1><span class="header-icon">🍔</span> Asortyment</h1>
+        </div>
+
+        <div class="tabs" id="menuTabs">
+          <button class="tab-btn active" data-category="all">Wszystko</button>
+          <button class="tab-btn" data-category="burgery">🍔 Burgery</button>
+          <button class="tab-btn" data-category="hotdogi">🌭 Hot-Dogi</button>
+          <button class="tab-btn" data-category="pizza">🍕 Pizza</button>
+          <button class="tab-btn" data-category="zapiekanki">🥖 Zapiekanki</button>
+          <button class="tab-btn" data-category="napoje">☕ Napoje</button>
+        </div>
+
+        <div class="card">
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Produkt</th>
+                  <th>Kategoria</th>
+                  <th>Cena</th>
+                  <th>Status</th>
+                  <th>Akcja</th>
+                </tr>
+              </thead>
+              <tbody id="menuTableBody">
+                <!-- Populated by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ────────── GRAFIK PERSONELU ────────── -->
+      <div class="section-page" id="section-schedule">
+        <div class="page-header">
+          <h1><span class="header-icon">📅</span> Grafik Personelu</h1>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header">
+              <h3><span class="card-icon">📋</span> Grafik Zmian</h3>
+            </div>
+            <div id="scheduleContent">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <h3><span class="card-icon">👤</span> Lista Pracowników</h3>
+            </div>
+            <div id="employeeList">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ────────── POMOC NIEPEŁNOSPRAWNYM ────────── -->
+      <div class="section-page" id="section-assistance">
+        <div class="page-header">
+          <h1><span class="header-icon">♿</span> Pomoc Niepełnosprawnym</h1>
+        </div>
+
+        <div class="card mb-3">
+          <div class="card-header">
+            <h3><span class="card-icon">🚨</span> Aktywne Zgłoszenia</h3>
+          </div>
+          <div id="assistanceAlerts">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3><span class="card-icon">📜</span> Historia Zgłoszeń</h3>
+          </div>
+          <div id="assistanceHistory">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- ────────── RAPORTY SPRZEDAŻY ────────── -->
+      <div class="section-page" id="section-reports">
+        <div class="page-header">
+          <h1><span class="header-icon">📈</span> Raporty Sprzedaży</h1>
+        </div>
+
+        <div class="tabs" id="reportTabs">
+          <button class="tab-btn active" data-period="daily">Dzienny</button>
+          <button class="tab-btn" data-period="weekly">Tygodniowy</button>
+          <button class="tab-btn" data-period="monthly">Miesięczny</button>
+        </div>
+
+        <div class="grid-2 mb-3">
+          <div class="card">
+            <div class="card-header">
+              <h3><span class="card-icon">⏰</span> Sprzedaż Godzinowa</h3>
+            </div>
+            <canvas id="hourlyChart" height="280"></canvas>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <h3><span class="card-icon">📊</span> Przychody wg Kategorii</h3>
+            </div>
+            <canvas id="categoryChart" height="280"></canvas>
+          </div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon">⛽</div>
+            <div class="stat-value" id="reportFuelRevenue">—</div>
+            <div class="stat-label">Przychód Paliwo</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🛒</div>
+            <div class="stat-value" id="reportShopRevenue">—</div>
+            <div class="stat-label">Przychód Sklep</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">☕</div>
+            <div class="stat-value" id="reportCafeRevenue">—</div>
+            <div class="stat-label">Przychód Cafe</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">💰</div>
+            <div class="stat-value" id="reportTotalRevenue">—</div>
+            <div class="stat-label">Łączny Przychód</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ────────── ROZLICZENIA PŁATNOŚCI ────────── -->
+      <div class="section-page" id="section-payments">
+        <div class="page-header">
+          <h1><span class="header-icon">💳</span> Rozliczenia Płatności</h1>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon">💳</div>
+            <div class="stat-value">8 240 PLN</div>
+            <div class="stat-label">Karta</div>
+            <div class="stat-change up">54% transakcji</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">📱</div>
+            <div class="stat-value">3 850 PLN</div>
+            <div class="stat-label">BLIK</div>
+            <div class="stat-change up">25% transakcji</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">₿</div>
+            <div class="stat-value">1 210 PLN</div>
+            <div class="stat-label">Krypto</div>
+            <div class="stat-change up">8% transakcji</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">💵</div>
+            <div class="stat-value">1 900 PLN</div>
+            <div class="stat-label">Gotówka</div>
+            <div class="stat-change down">13% transakcji</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3><span class="card-icon">📋</span> Ostatnie Transakcje</h3>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Data</th>
+                  <th>Typ</th>
+                  <th>Kwota</th>
+                  <th>Metoda</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="paymentsTableBody">
+                <!-- Populated by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ────────── EMISJE CO2 ────────── -->
+      <div class="section-page" id="section-emissions">
+        <div class="page-header">
+          <h1><span class="header-icon">🌿</span> Emisje CO2</h1>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon">🏭</div>
+            <div class="stat-value" id="emissionCO2">10,8 t</div>
+            <div class="stat-label">Emisja CO2</div>
+            <div class="stat-change down">↓ 6% vs ubiegły m-c</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">☀️</div>
+            <div class="stat-value" id="emissionSolar">34%</div>
+            <div class="stat-label">Energia Słoneczna</div>
+            <div class="stat-change up">↑ 3% vs ubiegły m-c</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">💧</div>
+            <div class="stat-value" id="emissionWater">156 m³</div>
+            <div class="stat-label">Zużycie Wody</div>
+            <div class="stat-change down">↓ 2% vs ubiegły m-c</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">⚡</div>
+            <div class="stat-value" id="emissionEnergy">28 500 kWh</div>
+            <div class="stat-label">Energia</div>
+            <div class="stat-change down">↓ 4% vs ubiegły m-c</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3><span class="card-icon">📉</span> Emisje CO2 — Trend Miesięczny</h3>
+          </div>
+          <canvas id="emissionsChart" height="300"></canvas>
+        </div>
+      </div>
+
+      <!-- ────────── PROMOCJE ────────── -->
+      <div class="section-page" id="section-promotions">
+        <div class="page-header">
+          <h1><span class="header-icon">🏷️</span> Promocje</h1>
+          <button class="btn btn-primary" onclick="openModal('promoModal')">➕ Nowa Promocja</button>
+        </div>
+
+        <div id="promotionsList">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ═══════════════ MODALS ═══════════════ -->
+
+  <!-- New Order Modal -->
+  <div class="modal-overlay" id="orderModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>📦 Nowe Zamówienie</h2>
+        <button class="modal-close" onclick="closeModal('orderModal')">&times;</button>
+      </div>
+      <form id="orderForm">
+        <div class="form-group">
+          <label class="form-label" for="orderType">Typ Zamówienia</label>
+          <select class="form-select" id="orderType" name="type" required>
+            <option value="">— Wybierz typ —</option>
+            <option value="Paliwo PB95">Paliwo PB95</option>
+            <option value="Paliwo PB98">Paliwo PB98</option>
+            <option value="Paliwo ON">Paliwo ON</option>
+            <option value="Paliwo LPG">Paliwo LPG</option>
+            <option value="Produkty spożywcze">Produkty spożywcze</option>
+            <option value="Napoje">Napoje</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="orderQuantity">Ilość</label>
+          <input class="form-input" type="text" id="orderQuantity" name="quantity" placeholder="np. 25 000 L lub 150 szt." required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="orderEta">Oczekiwana Dostawa (ETA)</label>
+          <input class="form-input" type="datetime-local" id="orderEta" name="eta" required>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('orderModal')">Anuluj</button>
+          <button type="submit" class="btn btn-primary">Złóż Zamówienie</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- New Promotion Modal -->
+  <div class="modal-overlay" id="promoModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>🏷️ Nowa Promocja</h2>
+        <button class="modal-close" onclick="closeModal('promoModal')">&times;</button>
+      </div>
+      <form id="promoForm">
+        <div class="form-group">
+          <label class="form-label" for="promoTitle">Tytuł Promocji</label>
+          <input class="form-input" type="text" id="promoTitle" name="title" placeholder="np. Kawa + Hot-Dog za 12.99 PLN" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="promoDescription">Opis</label>
+          <textarea class="form-textarea" id="promoDescription" name="description" placeholder="Opis promocji..." required></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="promoDiscount">Rabat / Wartość</label>
+          <input class="form-input" type="text" id="promoDiscount" name="discount" placeholder="np. 25% lub x2 punkty" required>
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label" for="promoValidFrom">Ważna od</label>
+            <input class="form-input" type="date" id="promoValidFrom" name="validFrom" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="promoValidTo">Ważna do</label>
+            <input class="form-input" type="date" id="promoValidTo" name="validTo" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('promoModal')">Anuluj</button>
+          <button type="submit" class="btn btn-primary">Dodaj Promocję</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ═══════════════ TOAST CONTAINER ═══════════════ -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="./js/mockApi.js"></script>
+  <script src="./js/manager.js"></script>
+</body>
+</html>

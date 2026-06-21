@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Panel klienta stacji benzynowej Orzeł — mapa, tankowanie, program lojalnościowy, Stop Cafe">
+  <title>Orzeł — Panel Klienta</title>
+  <link rel="stylesheet" href="./css/styles.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="./js/mockApi.js"></script>
+  <script src="./js/customer.js"></script>
+</head>
+<body>
+  <div class="app-layout">
+    <!-- ── SIDEBAR ──────────────────────────────────────── -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <span class="logo-icon">🦅</span>
+        <div class="logo-text">
+          <h2>Orzeł</h2>
+          <span>Panel Klienta</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <div class="nav-section-title">Główne</div>
+          <button class="nav-item active" data-section="map">
+            <span class="nav-icon">🗺️</span> Mapa Stacji
+          </button>
+          <button class="nav-item" data-section="fueling">
+            <span class="nav-icon">⛽</span> Tankowanie
+          </button>
+          <button class="nav-item" data-section="cafe">
+            <span class="nav-icon">🍔</span> Stop Cafe
+          </button>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-section-title">Moje Konto</div>
+          <button class="nav-item" data-section="loyalty">
+            <span class="nav-icon">🏆</span> Punkty & Nagrody
+            <span class="nav-badge" id="pointsBadge">3750</span>
+          </button>
+          <button class="nav-item" data-section="history">
+            <span class="nav-icon">📋</span> Historia Zakupów
+          </button>
+          <button class="nav-item" data-section="favorites">
+            <span class="nav-icon">❤️</span> Ulubione
+          </button>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-section-title">Usługi</div>
+          <button class="nav-item" data-section="packages">
+            <span class="nav-icon">📦</span> Paczki
+            <span class="nav-badge">2</span>
+          </button>
+          <button class="nav-item" data-section="assistance">
+            <span class="nav-icon">♿</span> Pomoc przy Tankowaniu
+          </button>
+          <button class="nav-item" data-section="reviews">
+            <span class="nav-icon">⭐</span> Oceny i Recenzje
+          </button>
+        </div>
+
+        <div class="nav-section">
+          <button class="nav-item" data-section="logout" id="logoutBtn">
+            <span class="nav-icon">🚪</span> Wyloguj się
+          </button>
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-card">
+          <div class="user-avatar">JK</div>
+          <div class="user-info">
+            <div class="user-name">Jan Kowalski</div>
+            <div class="user-role">Klient Premium</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ── MAIN CONTENT ────────────────────────────────── -->
+    <main class="main-content" id="mainContent">
+
+      <!-- ═══ MAPA STACJI ═══ -->
+      <div class="section-page active" id="section-map">
+        <div class="page-header">
+          <h1><span class="header-icon">🗺️</span> Mapa Stacji Orzeł</h1>
+          <div class="flex gap-1">
+            <select class="form-select" id="fuelFilter" style="width:auto;min-width:140px">
+              <option value="all">Wszystkie paliwa</option>
+              <option value="pb95">PB95</option>
+              <option value="pb98">PB98</option>
+              <option value="on">Diesel (ON)</option>
+              <option value="lpg">LPG</option>
+              <option value="ev">Ładowanie EV</option>
+            </select>
+            <button class="btn btn-primary" id="nearestBtn">
+              📍 Najbliższa stacja
+            </button>
+          </div>
+        </div>
+
+        <div class="map-container" id="stationMap" style="height:450px"></div>
+
+        <div class="stats-grid mt-2" id="mapStats">
+          <div class="stat-card">
+            <div class="stat-icon">⛽</div>
+            <div class="stat-value" id="stationCount">8</div>
+            <div class="stat-label">Stacji w sieci</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">💰</div>
+            <div class="stat-value" id="avgPb95">6.27 zł</div>
+            <div class="stat-label">Śr. cena PB95/L</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🏆</div>
+            <div class="stat-value" id="topRated">4.7 ⭐</div>
+            <div class="stat-label">Najwyżej oceniona</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🕐</div>
+            <div class="stat-value">24/7</div>
+            <div class="stat-label">Godziny otwarcia</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ TANKOWANIE ═══ -->
+      <div class="section-page" id="section-fueling">
+        <div class="page-header">
+          <h1><span class="header-icon">⛽</span> Tankowanie</h1>
+        </div>
+
+        <!-- Step 1: Select Station -->
+        <div class="card mb-2" id="fuelingStep1">
+          <div class="card-header">
+            <h3><span class="card-icon">📍</span> Krok 1: Wybierz stację</h3>
+          </div>
+          <select class="form-select" id="fuelingStation">
+            <!-- populated by JS -->
+          </select>
+        </div>
+
+        <!-- Step 2: Select Dispenser -->
+        <div class="card mb-2" id="fuelingStep2">
+          <div class="card-header">
+            <h3><span class="card-icon">🔢</span> Krok 2: Wybierz dystrybutor</h3>
+          </div>
+          <div class="dispenser-selector" id="dispenserSelector">
+            <button class="dispenser-btn" data-dispenser="1">1<span>Wolny</span></button>
+            <button class="dispenser-btn" data-dispenser="2">2<span>Wolny</span></button>
+            <button class="dispenser-btn occupied" data-dispenser="3" disabled>3<span>Zajęty</span></button>
+            <button class="dispenser-btn" data-dispenser="4">4<span>Wolny</span></button>
+            <button class="dispenser-btn" data-dispenser="5">5<span>Wolny</span></button>
+            <button class="dispenser-btn occupied" data-dispenser="6" disabled>6<span>Zajęty</span></button>
+          </div>
+        </div>
+
+        <!-- Step 3: Select Fuel -->
+        <div class="card mb-2" id="fuelingStep3">
+          <div class="card-header">
+            <h3><span class="card-icon">🛢️</span> Krok 3: Wybierz rodzaj paliwa</h3>
+          </div>
+          <div class="fuel-types" id="fuelTypeSelector">
+            <!-- populated by JS -->
+          </div>
+        </div>
+
+        <!-- Step 4: Fueling in progress -->
+        <div class="card mb-2" id="fuelingStep4" style="display:none">
+          <div class="card-header">
+            <h3><span class="card-icon">⏱️</span> Tankowanie w toku</h3>
+            <span class="badge badge-warning" id="fuelingStatus">Odblokowano</span>
+          </div>
+          <div class="fueling-display">
+            <div class="timer-display" id="unlockTimer">60</div>
+            <p class="text-secondary mb-2">Czas na rozpoczęcie tankowania</p>
+
+            <div class="fuel-gauge" id="fuelGauge">
+              <span class="liters" id="litersDisplay">0.0</span>
+              <span class="unit">litrów</span>
+              <span class="total" id="totalDisplay">0.00 zł</span>
+            </div>
+
+            <div class="flex gap-1 justify-between" style="justify-content:center;gap:1rem;margin-top:1rem;">
+              <button class="btn btn-primary btn-lg" id="startPumpBtn">🟢 Rozpocznij tankowanie</button>
+              <button class="btn btn-danger btn-lg" id="stopPumpBtn" style="display:none">🔴 Zakończ tankowanie</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 5: Payment -->
+        <div class="card mb-2" id="fuelingStep5" style="display:none">
+          <div class="card-header">
+            <h3><span class="card-icon">💳</span> Krok 4: Płatność</h3>
+          </div>
+          <div class="text-center mb-2">
+            <p class="text-secondary">Kwota do zapłaty</p>
+            <p style="font-size:2.5rem;font-weight:900;color:var(--accent-primary)" id="paymentTotal">0.00 zł</p>
+            <p class="text-secondary mt-1" id="pointsEarned">+0 punktów lojalnościowych</p>
+          </div>
+          <div class="payment-methods" id="paymentMethods">
+            <button class="payment-method selected" data-method="card">
+              <span class="pm-icon">💳</span>
+              <span class="pm-label">Karta</span>
+            </button>
+            <button class="payment-method" data-method="blik">
+              <span class="pm-icon">📱</span>
+              <span class="pm-label">BLIK</span>
+            </button>
+            <button class="payment-method" data-method="crypto">
+              <span class="pm-icon">₿</span>
+              <span class="pm-label">Krypto</span>
+            </button>
+          </div>
+
+          <!-- BLIK code input -->
+          <div id="blikInput" style="display:none" class="mt-2 text-center">
+            <label class="form-label">Wpisz kod BLIK</label>
+            <input type="text" class="form-input" maxlength="6" placeholder="_ _ _ _ _ _" style="max-width:200px;margin:0 auto;text-align:center;font-size:1.5rem;letter-spacing:0.5em;font-weight:700">
+          </div>
+
+          <!-- Crypto QR -->
+          <div id="cryptoPayment" style="display:none" class="mt-2 text-center">
+            <p class="text-secondary mb-1">Zeskanuj kod QR lub skopiuj adres portfela</p>
+            <div class="qr-code">
+              <div class="qr-pattern"></div>
+              <span class="qr-label">BTC</span>
+            </div>
+            <p style="font-size:0.75rem;color:var(--text-tertiary);word-break:break-all;margin-top:0.5rem">bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh</p>
+            <p class="badge badge-warning mt-1">⏱️ Kurs zamrożony na 180 sekund</p>
+          </div>
+
+          <div class="text-center mt-2">
+            <button class="btn btn-primary btn-lg" id="confirmPaymentBtn">✅ Potwierdź płatność</button>
+          </div>
+        </div>
+
+        <!-- Step 6: Confirmation -->
+        <div class="card" id="fuelingStep6" style="display:none">
+          <div class="text-center" style="padding:2rem">
+            <div style="font-size:4rem;margin-bottom:1rem">✅</div>
+            <h2>Płatność zakończona pomyślnie!</h2>
+            <p class="text-secondary mt-1" id="confirmationDetails"></p>
+            <div class="qr-code mt-2">
+              <div class="qr-pattern"></div>
+              <span class="qr-label">E-Paragon</span>
+            </div>
+            <p class="text-secondary mt-1">E-paragon zapisany w historii zakupów</p>
+            <button class="btn btn-primary mt-2" id="newFuelingBtn">🔄 Nowe tankowanie</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ STOP CAFE ═══ -->
+      <div class="section-page" id="section-cafe">
+        <div class="page-header">
+          <h1><span class="header-icon">🍔</span> Stop Cafe</h1>
+          <div class="badge badge-success">🟢 Otwarte</div>
+        </div>
+
+        <div class="search-bar">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="menuSearch" placeholder="Szukaj w menu...">
+        </div>
+
+        <div class="tabs" id="menuTabs">
+          <button class="tab-btn active" data-category="all">Wszystko</button>
+          <button class="tab-btn" data-category="burgery">🍔 Burgery</button>
+          <button class="tab-btn" data-category="hotdogi">🌭 Hot-Dogi</button>
+          <button class="tab-btn" data-category="pizza">🍕 Pizza</button>
+          <button class="tab-btn" data-category="zapiekanki">🥖 Zapiekanki</button>
+          <button class="tab-btn" data-category="napoje">☕ Napoje</button>
+        </div>
+
+        <div class="menu-grid" id="menuGrid">
+          <!-- populated by JS -->
+        </div>
+
+        <!-- Order Cart -->
+        <div class="card mt-2" id="orderCart" style="display:none">
+          <div class="card-header">
+            <h3><span class="card-icon">🛒</span> Twoje zamówienie</h3>
+            <button class="btn btn-sm btn-secondary" id="clearCartBtn">Wyczyść</button>
+          </div>
+          <div id="cartItems"></div>
+          <div class="flex justify-between items-center mt-2" style="justify-content:space-between;padding-top:1rem;border-top:1px solid var(--border)">
+            <div>
+              <span class="text-secondary">Razem: </span>
+              <span style="font-size:1.3rem;font-weight:800;color:var(--accent-primary)" id="cartTotal">0.00 zł</span>
+            </div>
+            <button class="btn btn-primary" id="placeOrderBtn">📤 Zamów i zapłać</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ PUNKTY & NAGRODY ═══ -->
+      <div class="section-page" id="section-loyalty">
+        <div class="page-header">
+          <h1><span class="header-icon">🏆</span> Program Lojalnościowy</h1>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon">⭐</div>
+            <div class="stat-value" id="loyaltyBalance">3 750</div>
+            <div class="stat-label">Aktualny balans punktów</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">📊</div>
+            <div class="stat-value">1 297</div>
+            <div class="stat-label">Zebrane w tym miesiącu</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🎁</div>
+            <div class="stat-value">4</div>
+            <div class="stat-label">Dostępne nagrody</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">💎</div>
+            <div class="stat-value">Premium</div>
+            <div class="stat-label">Poziom członkostwa</div>
+          </div>
+        </div>
+
+        <h2 class="mb-2">🎁 Katalog Nagród</h2>
+        <div class="grid-3" id="rewardsGrid">
+          <!-- populated by JS -->
+        </div>
+      </div>
+
+      <!-- ═══ HISTORIA ZAKUPÓW ═══ -->
+      <div class="section-page" id="section-history">
+        <div class="page-header">
+          <h1><span class="header-icon">📋</span> Historia Zakupów</h1>
+          <div class="flex gap-1">
+            <input type="date" class="form-input" id="historyFrom" style="width:auto">
+            <input type="date" class="form-input" id="historyTo" style="width:auto">
+            <button class="btn btn-secondary" id="historyFilterBtn">Filtruj</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Data</th>
+                  <th>Stacja</th>
+                  <th>Opis</th>
+                  <th>Ilość</th>
+                  <th>Kwota</th>
+                  <th>Punkty</th>
+                  <th>Płatność</th>
+                </tr>
+              </thead>
+              <tbody id="historyTableBody">
+                <!-- populated by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ ULUBIONE ═══ -->
+      <div class="section-page" id="section-favorites">
+        <div class="page-header">
+          <h1><span class="header-icon">❤️</span> Ulubione Produkty</h1>
+        </div>
+        <div class="menu-grid" id="favoritesGrid">
+          <!-- populated by JS -->
+        </div>
+        <div class="empty-state" id="favoritesEmpty" style="display:none">
+          <div class="empty-icon">💔</div>
+          <p>Nie masz jeszcze ulubionych produktów</p>
+          <p class="text-secondary mt-1">Dodaj produkty do ulubionych w menu Stop Cafe</p>
+        </div>
+      </div>
+
+      <!-- ═══ PACZKI ═══ -->
+      <div class="section-page" id="section-packages">
+        <div class="page-header">
+          <h1><span class="header-icon">📦</span> Odbiór Paczek</h1>
+        </div>
+
+        <div class="tabs">
+          <button class="tab-btn active" data-pkg-tab="waiting">Oczekujące</button>
+          <button class="tab-btn" data-pkg-tab="collected">Odebrane</button>
+        </div>
+
+        <div id="packagesWaiting">
+          <!-- populated by JS -->
+        </div>
+        <div id="packagesCollected" style="display:none">
+          <!-- populated by JS -->
+        </div>
+      </div>
+
+      <!-- ═══ POMOC PRZY TANKOWANIU ═══ -->
+      <div class="section-page" id="section-assistance">
+        <div class="page-header">
+          <h1><span class="header-icon">♿</span> Pomoc przy Tankowaniu</h1>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3><span class="card-icon">📢</span> Zgłoś potrzebę pomocy</h3>
+          </div>
+          <p class="text-secondary mb-2">Poinformuj obsługę stacji o potrzebie asysty przy tankowaniu. Pracownik podejdzie do Twojego samochodu.</p>
+
+          <div class="form-group">
+            <label class="form-label">Wybierz stację</label>
+            <select class="form-select" id="assistStation">
+              <!-- populated by JS -->
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Rodzaj paliwa</label>
+            <select class="form-select" id="assistFuel">
+              <option value="PB95">PB95</option>
+              <option value="PB98">PB98</option>
+              <option value="ON">Diesel (ON)</option>
+              <option value="LPG">LPG</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Przybliżony czas przyjazdu</label>
+            <input type="time" class="form-input" id="assistArrival">
+          </div>
+
+          <button class="btn btn-primary btn-lg w-full" id="requestAssistBtn">
+            ♿ Poproś o pomoc przy tankowaniu
+          </button>
+        </div>
+
+        <!-- Assistance Status -->
+        <div class="card mt-2" id="assistanceStatus" style="display:none">
+          <div class="card-header">
+            <h3><span class="card-icon">📡</span> Status zgłoszenia</h3>
+          </div>
+          <div class="text-center" style="padding:1.5rem">
+            <div class="spinner" id="assistSpinner"></div>
+            <p id="assistStatusText" class="mt-1">Oczekiwanie na potwierdzenie ze strony pracownika...</p>
+            <p id="assistEmployeeName" class="text-accent mt-1" style="display:none"></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ OCENY I RECENZJE ═══ -->
+      <div class="section-page" id="section-reviews">
+        <div class="page-header">
+          <h1><span class="header-icon">⭐</span> Oceny i Recenzje</h1>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3><span class="card-icon">✍️</span> Napisz recenzję</h3>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Wybierz stację</label>
+            <select class="form-select" id="reviewStation">
+              <!-- populated by JS -->
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Twoja ocena</label>
+            <div class="stars" id="reviewStars">
+              <button class="star empty" data-rating="1">★</button>
+              <button class="star empty" data-rating="2">★</button>
+              <button class="star empty" data-rating="3">★</button>
+              <button class="star empty" data-rating="4">★</button>
+              <button class="star empty" data-rating="5">★</button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Twoja opinia</label>
+            <textarea class="form-textarea" id="reviewText" placeholder="Podziel się swoją opinią o stacji..."></textarea>
+          </div>
+
+          <button class="btn btn-primary" id="submitReviewBtn">📤 Wyślij recenzję</button>
+        </div>
+
+        <div class="mt-2" id="reviewsList">
+          <h3 class="mb-2">📝 Twoje recenzje</h3>
+          <div class="empty-state" id="noReviews">
+            <div class="empty-icon">📝</div>
+            <p>Nie napisałeś jeszcze żadnej recenzji</p>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ── Toast Container ─────────────────────────────────── -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- ── Modals ──────────────────────────────────────────── -->
+  <!-- Reward Redeem Modal -->
+  <div class="modal-overlay" id="rewardModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>🎁 Odbiór nagrody</h2>
+        <button class="modal-close" onclick="closeModal('rewardModal')">&times;</button>
+      </div>
+      <div class="text-center" id="rewardModalContent">
+        <div style="font-size:4rem" id="rewardEmoji"></div>
+        <h3 class="mt-1" id="rewardName"></h3>
+        <p class="text-secondary" id="rewardCost"></p>
+        <div class="qr-code mt-2">
+          <div class="qr-pattern"></div>
+          <span class="qr-label" id="rewardCode">QR</span>
+        </div>
+        <p class="text-secondary mt-1">Pokaż ten kod pracownikowi stacji</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('rewardModal')">Zamknij</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Package QR Modal -->
+  <div class="modal-overlay" id="packageModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>📦 Kod odbioru paczki</h2>
+        <button class="modal-close" onclick="closeModal('packageModal')">&times;</button>
+      </div>
+      <div class="text-center">
+        <div class="qr-code" style="width:200px;height:200px">
+          <div class="qr-pattern"></div>
+          <span class="qr-label" id="packageQrCode">PKG</span>
+        </div>
+        <p class="text-secondary mt-2">Pokaż kod pracownikowi stacji aby odebrać paczkę</p>
+        <p class="mt-1" id="packageModalDetails"></p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('packageModal')">Zamknij</button>
+        <button class="btn btn-primary" id="confirmCollectBtn">✅ Potwierdź odbiór</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Food Order Confirmation Modal -->
+  <div class="modal-overlay" id="foodOrderModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>✅ Zamówienie złożone!</h2>
+        <button class="modal-close" onclick="closeModal('foodOrderModal')">&times;</button>
+      </div>
+      <div class="text-center" id="foodOrderContent">
+        <div style="font-size:4rem;margin-bottom:1rem">🍽️</div>
+        <p class="text-secondary">Numer zamówienia</p>
+        <p style="font-size:2rem;font-weight:900;color:var(--accent-primary)" id="foodOrderNumber"></p>
+        <p class="text-secondary mt-1" id="foodOrderTime"></p>
+        <p class="mt-1" id="foodOrderPoints"></p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" onclick="closeModal('foodOrderModal')">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/customer.js"></script>
+</body>
+</html>

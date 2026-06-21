@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Aplikacja sieci stacji paliw Orzeł — tankowanie, płatności, program lojalnościowy, zarządzanie stacją">
+  <title>Stacja Benzynowa Orzeł — Logowanie</title>
+  <link rel="stylesheet" href="./css/styles.css">
+  <style>
+    .login-features {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-top: 2.5rem;
+      text-align: center;
+    }
+    .login-feature {
+      padding: 1rem;
+      border-radius: var(--radius-md);
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+    }
+    .login-feature .feat-icon { font-size: 1.5rem; margin-bottom: 0.5rem; }
+    .login-feature .feat-label { font-size: 0.75rem; color: var(--text-secondary); }
+    @media (max-width: 500px) {
+      .login-features { grid-template-columns: 1fr; }
+    }
+    .auth-form {
+      display: none;
+      flex-direction: column;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    .auth-form.active {
+      display: flex;
+    }
+    .auth-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    .back-btn {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .back-btn:hover { color: var(--text-primary); }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      text-align: left;
+    }
+    .form-group label {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+    .form-group input {
+      width: 100%;
+      padding: 0.75rem;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,0.2);
+      color: var(--text-primary);
+      font-family: inherit;
+    }
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--accent-primary);
+    }
+    .switch-link {
+      color: var(--accent-primary);
+      text-decoration: underline;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-page">
+    <div class="login-container">
+      <div class="login-logo">
+        <span class="eagle-icon">🦅</span>
+        <h1>Orzeł</h1>
+        <p>Sieć Stacji Paliw — Panel Zarządzania</p>
+      </div>
+
+      <div class="login-card">
+        
+        <!-- SELECTOR -->
+        <div id="formSelector" class="auth-form active">
+          <h2>Wybierz panel</h2>
+          <div class="role-selector">
+            <button class="role-btn" onclick="showForm('formCustomerLogin')">
+              <div class="role-icon">🚗</div>
+              <div class="role-info">
+                <h3>Strefa Klienta</h3>
+                <p>Logowanie i rejestracja</p>
+              </div>
+            </button>
+
+            <button class="role-btn" onclick="showForm('formManagerLogin')">
+              <div class="role-icon">👔</div>
+              <div class="role-info">
+                <h3>Pracownik / Menedżer</h3>
+                <p>Zarządzanie stacją</p>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- CUSTOMER LOGIN -->
+        <div id="formCustomerLogin" class="auth-form">
+          <div class="auth-header">
+            <button class="back-btn" onclick="showForm('formSelector')">← Wróć</button>
+            <h2>Logowanie Klienta</h2>
+          </div>
+          <form id="customerLoginForm" onsubmit="event.preventDefault(); handleLogin(false);">
+            <div class="form-group">
+              <label>Adres e-mail</label>
+              <input type="email" id="custLogEmail" required placeholder="jan@kowalski.pl" value="test">
+            </div>
+            <div class="form-group">
+              <label>Hasło</label>
+              <input type="password" id="custLogPass" required placeholder="••••••••" value="test">
+            </div>
+            <button type="submit" class="btn btn-primary w-full" style="margin-top: 0.5rem; padding: 0.75rem;">Zaloguj się</button>
+          </form>
+          <p style="font-size:0.85rem; color:var(--text-secondary); margin-top:1rem;">
+            Nie masz konta? <span class="switch-link" onclick="showForm('formCustomerRegister')">Zarejestruj się</span>
+          </p>
+        </div>
+
+        <!-- CUSTOMER REGISTER -->
+        <div id="formCustomerRegister" class="auth-form">
+          <div class="auth-header">
+            <button class="back-btn" onclick="showForm('formCustomerLogin')">← Wróć</button>
+            <h2>Rejestracja</h2>
+          </div>
+          <form id="customerRegisterForm" onsubmit="event.preventDefault(); handleRegister();">
+            <div class="form-group">
+              <label>Imię i nazwisko</label>
+              <input type="text" id="custRegName" required placeholder="Jan Kowalski">
+            </div>
+            <div class="form-group">
+              <label>Adres e-mail</label>
+              <input type="email" id="custRegEmail" required placeholder="jan@kowalski.pl">
+            </div>
+            <div class="form-group">
+              <label>Hasło</label>
+              <input type="password" id="custRegPass" required placeholder="••••••••">
+            </div>
+            <button type="submit" class="btn btn-primary w-full" style="margin-top: 0.5rem; padding: 0.75rem;">Zarejestruj się</button>
+          </form>
+          <p style="font-size:0.85rem; color:var(--text-secondary); margin-top:1rem;">
+            Odbierz darmowe 500 pkt na start!
+          </p>
+        </div>
+
+        <!-- MANAGER LOGIN -->
+        <div id="formManagerLogin" class="auth-form">
+          <div class="auth-header">
+            <button class="back-btn" onclick="showForm('formSelector')">← Wróć</button>
+            <h2>Logowanie Pracownika</h2>
+          </div>
+          <form id="managerLoginForm" onsubmit="event.preventDefault(); handleLogin(true);">
+            <div class="form-group">
+              <label>ID Pracownika / Email</label>
+              <input type="text" id="mgrLogEmail" required placeholder="admin" value="admin">
+            </div>
+            <div class="form-group">
+              <label>Hasło dostępu</label>
+              <input type="password" id="mgrLogPass" required placeholder="••••••••" value="admin">
+            </div>
+            <button type="submit" class="btn btn-primary w-full" style="margin-top: 0.5rem; padding: 0.75rem;">Zaloguj się do systemu</button>
+          </form>
+        </div>
+
+      </div>
+
+      <div class="login-features">
+        <div class="login-feature">
+          <div class="feat-icon">⛽</div>
+          <div class="feat-label">8 stacji w sieci</div>
+        </div>
+        <div class="login-feature">
+          <div class="feat-icon">🏆</div>
+          <div class="feat-label">Program lojalnościowy</div>
+        </div>
+        <div class="login-feature">
+          <div class="feat-icon">📱</div>
+          <div class="feat-label">Płatności cyfrowe</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Ładowanie Mock API -->
+  <script src="./js/mockApi.js"></script>
+  <script>
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const icons = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.innerHTML = `
+        <span class="toast-icon">${icons[type]}</span>
+        <span class="toast-message">${message}</span>
+      `;
+      container.appendChild(toast);
+      setTimeout(() => toast.remove(), 5000);
+    }
+
+    function showForm(formId) {
+      document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+      document.getElementById(formId).classList.add('active');
+    }
+
+    async function handleLogin(isManager) {
+      const email = isManager ? document.getElementById('mgrLogEmail').value : document.getElementById('custLogEmail').value;
+      const pass = isManager ? document.getElementById('mgrLogPass').value : document.getElementById('custLogPass').value;
+      
+      const btn = isManager ? document.querySelector('#managerLoginForm button') : document.querySelector('#customerLoginForm button');
+      const origText = btn.textContent;
+      btn.textContent = 'Logowanie...';
+      btn.disabled = true;
+
+      const res = await window.MockAPI.login(email, pass, isManager);
+      
+      if (res.success) {
+        showToast('Zalogowano pomyślnie!', 'success');
+        setTimeout(() => {
+          window.location.href = isManager ? './manager.html' : './customer.html';
+        }, 500);
+      } else {
+        btn.textContent = origText;
+        btn.disabled = false;
+        showToast(res.error, 'error');
+      }
+    }
+
+    async function handleRegister() {
+      const name = document.getElementById('custRegName').value;
+      const email = document.getElementById('custRegEmail').value;
+      const pass = document.getElementById('custRegPass').value;
+      
+      const btn = document.querySelector('#customerRegisterForm button');
+      btn.textContent = 'Rejestracja...';
+      btn.disabled = true;
+
+      const res = await window.MockAPI.register(name, email, pass);
+      
+      if (res.success) {
+        showToast('Konto utworzone! Zalogowano pomyślnie.', 'success');
+        setTimeout(() => {
+          window.location.href = './customer.html';
+        }, 1000);
+      } else {
+        btn.textContent = 'Zarejestruj się';
+        btn.disabled = false;
+        showToast(res.error, 'error');
+      }
+    }
+  </script>
+</body>
+</html>
