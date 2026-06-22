@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="./js/mockApi.js"></script>
-  <script src="./js/customer.js"></script>
+  <script src="/js/customer.js"></script>
 </head>
 <body>
   <div class="app-layout">
@@ -502,6 +502,10 @@
       </div>
 
     </main>
+    <div class="mobile-overlay" id="mobileOverlay"></div>
+    <button class="mobile-menu-btn" id="mobileMenuBtn">
+      <span>☰</span> Menu
+    </button>
   </div>
 
   <!-- ── Toast Container ─────────────────────────────────── -->
@@ -573,10 +577,7 @@
     </div>
   </div>
 
+  <script src="./js/mockApi.js"></script>
   <script src="/js/customer.js"></script>
-  <div class="mobile-overlay" id="mobileOverlay"></div>
-  <button class="mobile-menu-btn" id="mobileMenuBtn">
-    <span>☰</span> Menu
-  </button>
 </body>
 </html>
