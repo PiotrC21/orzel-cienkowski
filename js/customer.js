@@ -904,3 +904,28 @@ document.addEventListener('DOMContentLoaded', () => {
   loadFavorites();
   loadPackages();
 });
+// Mobile Menu Logic
+document.addEventListener('DOMContentLoaded', () => {
+  const menuBtn = document.getElementById('mobileMenuBtn');
+  const overlay = document.getElementById('mobileOverlay');
+  const sidebar = document.querySelector('.sidebar');
+  const navItems = document.querySelectorAll('.nav-item');
+
+  function toggleMenu() {
+    if (!sidebar) return;
+    sidebar.classList.toggle('active');
+    overlay.classList.toggle('active');
+  }
+
+  if (menuBtn && overlay && sidebar) {
+    menuBtn.addEventListener('click', toggleMenu);
+    overlay.addEventListener('click', toggleMenu);
+    
+    // Close menu when clicking a nav item on mobile
+    navItems.forEach(item => {
+      item.addEventListener('click', () => {
+        if (window.innerWidth <= 768) toggleMenu();
+      });
+    });
+  }
+});
