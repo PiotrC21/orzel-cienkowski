@@ -144,6 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
               ${station.hasEV ? '<span style="background:#eff6ff;color:#2563eb;padding:2px 6px;border-radius:4px;font-size:10px;">⚡ EV</span>' : ''}
               ${station.hasPackages ? '<span style="background:#fef3c7;color:#d97706;padding:2px 6px;border-radius:4px;font-size:10px;">📦 Paczki</span>' : ''}
             </div>
+            <button class="btn btn-primary" style="margin-top:12px; width:100%; font-size:12px; padding:6px" onclick="window.goToFueling(${station.id})">⛽ Tankuj na tej stacji</button>
           </div>
         `)
         .addTo(map);
@@ -211,13 +212,38 @@ document.addEventListener('DOMContentLoaded', () => {
   // ══════════════════════════════════════════════════════════
 
   // Dispenser selection
-  document.querySelectorAll('.dispenser-btn:not(.occupied)').forEach(btn => {
+  document.querySelectorAll('.dispenser-btn').forEach(btn => {
     btn.addEventListener('click', () => {
+      if (btn.classList.contains('occupied')) return;
       document.querySelectorAll('.dispenser-btn').forEach(b => b.classList.remove('selected'));
       btn.classList.add('selected');
       selectedDispenser = btn.dataset.dispenser;
     });
   });
+
+  function randomizeDispensers() {
+    const btns = document.querySelectorAll('.dispenser-btn');
+    btns.forEach(b => {
+      b.classList.remove('occupied', 'selected');
+      b.removeAttribute('disabled');
+      b.querySelector('span').textContent = 'Wolny';
+    });
+    selectedDispenser = null;
+
+    const occupiedCount = Math.floor(Math.random() * 3) + 1; // 1 to 3 occupied
+    const occupiedIndices = [];
+    while (occupiedIndices.length < occupiedCount) {
+      const idx = Math.floor(Math.random() * btns.length);
+      if (!occupiedIndices.includes(idx)) occupiedIndices.push(idx);
+    }
+
+    occupiedIndices.forEach(idx => {
+      const b = btns[idx];
+      b.classList.add('occupied');
+      b.setAttribute('disabled', 'true');
+      b.querySelector('span').textContent = 'Zajęty';
+    });
+  }
 
   // Fuel type selector — built from station data
   function renderFuelTypes(stationId) {
@@ -246,7 +272,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('fuelingStation').addEventListener('change', (e) => {
     renderFuelTypes(e.target.value);
+    randomizeDispensers();
   });
+
+  window.goToFueling = (stationId) => {
+    // 1. Switch nav
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    const fuelingNav = document.querySelector('.nav-item[data-section="fueling"]');
+    if (fuelingNav) fuelingNav.classList.add('active');
+
+    document.querySelectorAll('.section-page').forEach(s => s.classList.remove('active'));
+    document.getElementById('section-fueling').classList.add('active');
+
+    // 2. Select station and trigger change
+    const select = document.getElementById('fuelingStation');
+    if (select) {
+      select.value = stationId;
+      select.dispatchEvent(new Event('change'));
+    }
+
+    // 3. Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   // Start unlock countdown
   function startUnlock() {
