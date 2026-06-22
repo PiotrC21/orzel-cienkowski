@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (section === 'logout') {
         localStorage.removeItem('orzel_role');
         localStorage.removeItem('orzel_user');
-        window.location.href = '/';
+        window.location.href = './index.html';
         return;
       }
 

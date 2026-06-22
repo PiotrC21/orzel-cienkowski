@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // ── Logout ───────────────────────────────────────────────────
   document.getElementById('logoutBtn').addEventListener('click', () => {
     localStorage.clear();
-    window.location.href = '/';
+    window.location.href = './index.html';
   });
 
   // ── Toast Notifications ──────────────────────────────────────
